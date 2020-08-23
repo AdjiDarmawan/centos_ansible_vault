@@ -1,0 +1,17 @@
+ui = true
+
+listener "tcp" {
+   address = "0.0.0.0:8200"
+   cluster_address = "{{ vault_server_1 }}:8201"
+   tls_disable = 1
+}
+
+backend "consul" {
+   address = "127.0.0.1:8500"
+   path = "vault/"
+   token = "6e358189-569c-f7b2-6cbb-29b5dcdf6e73"
+}
+
+disable_mlock = true
+api_addr = "{{ api_addr }}:8200"
+cluster_addr = "{{ cluster_addr }}:8201"

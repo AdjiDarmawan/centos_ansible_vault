@@ -1,0 +1,3 @@
+---
+- name: Restaring Vault Server
+  service: name=vault.service state=restarted

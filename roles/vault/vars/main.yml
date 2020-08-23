@@ -1,0 +1,29 @@
+---
+#Path Information
+dest_myhosts_file: /etc
+
+# VAULT INFORMATION
+vault_version: "<fill_vault_version>"
+vault_group: "vault"
+vault_user: "vault"
+vault_mode: "0775"
+root_mode: "root"
+root_group: "root"
+
+# VAULT DIRECTORIES PROFILE
+vault_binary_directory_path: "/usr/local/bin"
+vault_directory_path: "/etc/vault.d"
+vault_log_directory: "/var/log/vault-log"
+vault_log_file_path: "/var/log/vault-log/vault-audit.log"
+vault_configuration_file: "/etc/vault.d/config.json"
+vault_autounseal_file: "/etc/vault.d/config-autoanseal.hcl"
+vault_systemd_file: "/etc/systemd/system/vault.service"
+
+# VARIABLE FOR VAULT CLUSTERING
+vault_server_1: <FILL_VAULT_SERVER1>
+vault_server_2: <FILL_VAULT_SERVER2>
+vault_server_3: <FILL_VAULT_SERVER3>
+
+bind_addr: <FILL_VAULTIP>
+api_addr: <FILL_VAULTIP>
+cluster_addr: <FILL_VAULTIP>

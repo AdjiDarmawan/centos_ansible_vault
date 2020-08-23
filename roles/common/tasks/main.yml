@@ -1,0 +1,91 @@
+---
+- name: 1. Check Operating System Updating
+  yum:
+    name: "*"
+    state: latest
+  tags:
+    - check_OS_Updating
+
+#Changes Default Hostname
+- name: 1. Changes Default Hostname Server
+  hostname:
+    name: "{{ hostname }}"
+  tags:
+    - change_hostname
+
+#Add New Hostname on /etc/hosts
+- name: 2. Changes FQDN Host
+  template:
+    src: templates/hosts.j2
+    dest: "{{ dest_myhosts_file }}/hosts"
+  tags:
+    - change_hostname
+
+#Install Standard Packages
+- name: 3. Install base Packages
+  yum:
+    name:
+      - git
+      # - jq
+      # - htop
+      - curl
+      - yum-utils
+    state: present
+  tags:
+    - install_packages
+
+#Setting Timezona NTPS
+- name: 4. Setting Timezone Host Server
+  shell: timedatectl set-timezone Asia/Jakarta
+  tags:
+    - settingup_timezone
+
+#Installing NTP Server
+- name: 5. Install NTP Server
+  yum:
+    name: ntp
+    state: installed
+  tags:
+    - install_ntp
+
+#Enabling NTP Server Services
+- name: 6. Enable Service NTP Server
+  firewalld:
+    service: ntp
+    permanent: yes
+    state: enabled
+  tags:
+    - enable_ntp_firewalled
+
+- name: 7. Reload Firewall
+  systemd:
+    name: firewalld
+    state: reloaded
+  tags:
+    - firewalld_reloaded
+
+#Copy ntp configuration File
+- name: 8. Copy NTP configuration File
+  template:
+    src: templates/ntp.conf.j2
+    dest: "{{ ntp_configuration_path }}/ntp.conf"
+  notify:
+  - Restarting NTP Server
+  tags: ntp
+
+#Stoping NTP Server Services for updating NTP Global Server
+- name: 9. Stoped NTP Server Service
+  service:
+    name: ntpd
+    state: stopped
+    enabled: yes
+  tags:
+    - stopped_ntp_service
+
+#Initialization NTP Server
+- name: 10. Sync time for Initialization
+  shell: ntpdate pool.ntp.org
+  notify:
+    - Restarting NTP Server
+  tags:
+    - syncup_ntp

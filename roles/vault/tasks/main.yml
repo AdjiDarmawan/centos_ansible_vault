@@ -1,0 +1,120 @@
+---
+# Create Vault Group User
+- name: 1. Create Vault Group User
+  group:
+    name: "{{ vault_group }}"
+  tags:
+    - create_vault_group
+
+# Create Vault User
+- name: 2. Create vault User
+  user:
+    name: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    # append: yes
+    system: yes
+    shell: "/usr/sbin/nologin"
+    createhome: no
+    comment: "Create User No Login"
+    # stste: present
+  tags:
+    - create_user_and_group
+
+# Download Vault HasihCorp BinaryFile
+- name: 3. Download vault
+  get_url:
+    url: "https://releases.hashicorp.com/vault/{{ vault_version }}/vault_{{ vault_version }}_linux_amd64.zip"
+    dest: "/tmp/vault_{{ vault_version }}_linux_amd64.zip"
+  tags:
+    - download-vault
+
+# Extract Vault Binary File
+- name: 4. Extract vault file
+  unarchive:
+    src: "/tmp/vault_{{ vault_version }}_linux_amd64.zip"
+    dest: "{{ vault_binary_directory_path }}"
+    remote_src: True
+    # owner: "{{ vault_user }}"
+    # group: "{{ vault_group }}"
+    mode: 0755
+  tags:
+    - extract-vault
+
+#Create directory Vault-Config
+- name: 5. Create Vault Directory Configuration
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - '/etc/vault-config'
+    - '/etc/vault-config/policies'
+    - '/etc/vault-config/data'
+    - '/var/log/vault-logs'
+  tags: vault
+
+# Create Vault Configurations
+- name: 6. Copy Vault-Configuration file
+  template:
+    src: templates/config.json.j2
+    dest: /etc/vault-config/config.json
+  tags: vault
+
+
+# Open Port Vault Service
+- name: Open Port Vault Services
+  firewalld:
+    port: "{{ item.port }}"
+    permanent: "{{ item.permanent }}"
+    state: enabled
+  with_items:
+    - { port: '8200/tcp', permanent: true }
+    - { port: '8300/tcp', permanent: true }
+    - { port: '8301/tcp', permanent: true }
+    - { port: '8500/tcp', permanent: true }
+
+#Reload Firewall
+- name: 7. Reload Firewall Configure
+  systemd:
+    name: firewalld
+    state: reloaded
+  tags:
+    - reload_services
+
+# Create Systemd Services
+- name: 8. Configure Vault Services
+  template:
+    src: templates/vault.service
+    dest: /etc/systemd/system/vault.service
+  template: src=templates/vault.service dest=/etc/systemd/system/vault.service
+  notify:
+  - Restaring Vault Server
+  tags:
+    - vault_service
+
+# Vault Initialize
+- name: 9. Vault Initialize
+  command: vault operator init
+  register: keys
+  environment:
+    VAULT_ADDR: "{{ api_addr }}"
+
+- debug: msg="{{ keys }}"
+
+# - name: Starting Vault Server
+#   service: name=vault.service state=started enabled=yes
+#   tags: vault
+
+# - name: Create File For Unseal Storage
+#   file:
+#     path: "/etc/vault-config/shares-key.txt"
+#     state: touch
+#   tags: vault
+
+#- name: Initialize Vault Server
+#  command: vault operator init -key-shares=5 -key-threshold=3
+#  register: yes
+#  environment:
+#    VAULT_ADDR="{{ vault_address }}"
+#  tags: vault
+
+#- debug: msg="{{ keys }}"
