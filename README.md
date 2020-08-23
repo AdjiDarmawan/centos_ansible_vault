@@ -8,7 +8,7 @@ Secure, store and tightly control access to tokens, passwords, certificates, enc
 You must edit two variables on contained in the role directory (common and vault)
 
 COMMON ROLE VARIABLE
-```
+```bash
 ---
 # Host Profilling
 hostname: "<fill_your_hostname>"
@@ -20,7 +20,7 @@ ntp_configuration_path: /etc
 ```
 
 VAULT ROLE VARIABLE
-```
+```bash
 ---
 #Path Information
 dest_myhosts_file: /etc
